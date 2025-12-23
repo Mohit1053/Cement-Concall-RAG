@@ -1,0 +1,33 @@
+# Cement Concall RAG - Requirements
+
+# RAG Framework
+langchain==0.1.0
+langchain-openai==0.0.2
+langchain-community==0.0.10
+
+# Vector Store
+chromadb==0.4.22
+
+# Embeddings
+openai==1.6.1
+
+# Document Processing
+pypdf==3.17.4
+python-docx==1.1.0
+pdfplumber==0.10.3
+
+# Data Processing
+pandas==2.1.4
+openpyxl==3.1.2
+
+# Web Scraping
+requests==2.31.0
+beautifulsoup4==4.12.2
+selenium==4.16.0
+
+# UI
+streamlit==1.29.0
+
+# Utilities
+tqdm==4.66.1
+python-dotenv==1.0.0

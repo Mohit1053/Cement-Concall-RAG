@@ -1,0 +1,50 @@
+# Credentials & Secrets
+credentials.json
+token.pickle
+*.pickle
+.env
+*.pem
+*.key
+config.py
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Vector DB (large files - excluded due to GitHub size limits)
+rag_pipeline/data/vector_db_all/
+*.npy
+*.pkl
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OpenAI
+.openai/

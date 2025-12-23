@@ -1,0 +1,303 @@
+# Cement RAG Pipeline Configuration
+
+# Data Paths
+data:
+  raw_transcripts_dir: "Cement_Concall_Transcripts"
+  metadata_csv: "Cement_Companies_Concalls_2Years_FINAL_20251202_121207.csv"
+  processed_dir: "data/processed"
+  embeddings_cache: "data/embeddings"
+  
+# PDF Processing
+pdf_processing:
+  engine: "pymupdf"  # Options: pymupdf, pdfplumber, pypdf2
+  extract_tables: true
+  extract_images: false
+  ocr_fallback: false
+
+# Text Processing & Chunking
+chunking:
+  strategy: "hybrid"  # Options: semantic, structural, hybrid
+  chunk_size: 800
+  chunk_overlap: 150
+  min_chunk_size: 200
+  
+  # Semantic chunking parameters
+  semantic:
+    model: "sentence-transformers/all-MiniLM-L6-v2"
+    similarity_threshold: 0.7
+  
+  # Structural markers
+  section_markers:
+    - "Management Discussion"
+    - "Q&A Session"
+    - "Financial Highlights"
+    - "Moderator:"
+    - "Analyst:"
+
+# Entity Extraction
+entity_extraction:
+  enabled: true
+  extract_financial_metrics: true
+  extract_locations: true
+  extract_companies: true
+  extract_people: true
+  
+  financial_patterns:
+    - "revenue"
+    - "EBITDA"
+    - "margin"
+    - "capacity"
+    - "utilization"
+    - "volume"
+    - "realisation"
+
+# Embedding Configuration
+embedding:
+  provider: "local"  # Options: openai, local, huggingface
+  
+  # Local embedding model
+  local:
+    model_name: "BAAI/bge-large-en-v1.5"
+    device: "cuda"  # Options: cuda, cpu, mps
+    batch_size: 32
+    normalize: true
+  
+  # OpenAI (if provider=openai)
+  openai:
+    model: "text-embedding-3-large"
+    dimensions: 3072
+    
+  # Caching
+  cache_embeddings: true
+  cache_dir: "data/embeddings_cache"
+
+# Vector Database Configuration
+vectorstore:
+  provider: "qdrant"  # Options: qdrant, chromadb, pinecone, pgvector
+  
+  # Qdrant settings
+  qdrant:
+    host: "localhost"
+    port: 6333
+    collection_name: "cement_transcripts"
+    distance_metric: "cosine"  # Options: cosine, euclidean, dot
+    
+    # HNSW index parameters
+    hnsw:
+      m: 16
+      ef_construct: 200
+      ef_search: 100
+    
+    # Enable hybrid search
+    enable_sparse: true
+  
+  # ChromaDB settings (alternative)
+  chromadb:
+    persist_directory: "data/chromadb"
+    collection_name: "cement_transcripts"
+  
+  # Metadata indexing
+  indexed_fields:
+    - "company_name"
+    - "date"
+    - "quarter"
+    - "fiscal_year"
+    - "chunk_type"
+    - "section"
+
+# Retrieval Configuration
+retrieval:
+  # Initial retrieval
+  initial_k: 20
+  final_k: 5
+  
+  # Hybrid search weights
+  dense_weight: 0.7
+  sparse_weight: 0.3
+  
+  # Reranking
+  reranker:
+    enabled: true
+    model: "BAAI/bge-reranker-large"
+    batch_size: 16
+  
+  # Query processing
+  query_expansion:
+    enabled: true
+    add_synonyms: true
+    add_company_variants: true
+  
+  # Filters
+  default_filters:
+    date_range_months: 24  # Last 24 months
+    min_relevance_score: 0.5
+
+# LLM Configuration
+llm:
+  provider: "openai"  # Options: openai, anthropic, local, azure
+  
+  # OpenAI settings
+  openai:
+    model: "gpt-4-turbo-preview"
+    temperature: 0.1
+    max_tokens: 2000
+    top_p: 0.95
+  
+  # Anthropic Claude settings
+  anthropic:
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.1
+    max_tokens: 2000
+  
+  # Local LLM (Ollama)
+  local:
+    model: "llama3.1:70b"
+    base_url: "http://localhost:11434"
+    temperature: 0.1
+    
+  # Response settings
+  include_citations: true
+  max_context_chunks: 5
+  context_window: 8000
+
+# Prompt Templates
+prompts:
+  system_prompt: |
+    You are a financial analyst specializing in the Indian cement industry. 
+    You have access to conference call transcripts from 13 major cement companies over 2 years.
+    
+    Your role is to:
+    1. Provide accurate, data-driven insights from the transcripts
+    2. Compare companies when relevant
+    3. Identify trends and patterns
+    4. Cite specific sources with company name and date
+    5. Acknowledge when information is not available
+    
+    Guidelines:
+    - Always cite sources [Company, Quarter Year]
+    - Distinguish between management statements and analyst questions
+    - Highlight financial metrics with units
+    - Be precise with numbers and dates
+    - Flag any uncertainties or contradictions
+  
+  query_prompt: |
+    Based on the following conference call excerpts, answer the user's question.
+    
+    User Question: {query}
+    
+    Retrieved Context:
+    {context}
+    
+    Instructions:
+    1. Answer directly and concisely
+    2. Use specific data points from context
+    3. Cite sources in format: [Company, Quarter Year]
+    4. Present comparisons in structured format
+    5. Highlight key insights
+    6. State if information is incomplete
+    
+    Answer:
+
+# Query Classification
+query_classification:
+  enabled: true
+  types:
+    - factual        # Direct fact lookup
+    - comparative    # Compare companies/metrics
+    - trend          # Time-series analysis
+    - strategic      # Strategic insights
+    - aggregation    # Aggregated statistics
+
+# Advanced Features
+advanced:
+  # Multi-document reasoning
+  multi_doc_reasoning: true
+  max_documents_per_query: 10
+  
+  # Financial analysis tools
+  financial_tools:
+    enabled: true
+    compute_ratios: true
+    trend_analysis: true
+    peer_comparison: true
+  
+  # Conversation memory
+  conversation_memory:
+    enabled: false
+    max_history: 5
+    
+  # Response caching
+  response_caching:
+    enabled: true
+    cache_ttl_hours: 24
+    cache_backend: "redis"  # Options: redis, memory, disk
+
+# Evaluation & Monitoring
+evaluation:
+  # Metrics
+  track_retrieval_metrics: true
+  track_generation_metrics: true
+  track_latency: true
+  
+  # Logging
+  log_level: "INFO"
+  log_dir: "logs"
+  log_queries: true
+  log_responses: true
+  
+  # User feedback
+  collect_feedback: true
+  feedback_file: "data/user_feedback.jsonl"
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8501"
+  rate_limit: "100/minute"
+  api_key_required: false
+
+# UI Configuration
+ui:
+  framework: "streamlit"  # Options: streamlit, gradio
+  title: "Cement Industry RAG Assistant"
+  theme: "light"
+  show_sources: true
+  show_confidence: true
+  enable_follow_up: true
+
+# Performance Optimization
+performance:
+  # Caching
+  cache_embeddings: true
+  cache_responses: true
+  
+  # Async operations
+  async_retrieval: true
+  async_generation: false
+  
+  # Batch processing
+  batch_embed: true
+  batch_size: 32
+  
+  # Resource limits
+  max_workers: 4
+  memory_limit_gb: 8
+
+# Companies List
+companies:
+  - "ACC Limited"
+  - "Ambuja Cements"
+  - "Birla Corporation"
+  - "Dalmia Bharat Ltd"
+  - "Grasim Industries"
+  - "India Cements"
+  - "J K Cement"
+  - "JK Lakshmi Cement"
+  - "Nuvoco Vistas"
+  - "Shree Cement"
+  - "Star Cement"
+  - "The Ramco Cements"
+  - "UltraTech Cement"

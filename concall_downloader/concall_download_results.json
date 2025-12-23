@@ -1,0 +1,10 @@
+[
+  {
+    "company": "UltraTech Cem.",
+    "success": false,
+    "downloaded_files": [],
+    "errors": [
+      "Message: element not interactable\n  (Session info: chrome=142.0.7444.176); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception\nStacktrace:\nSymbols not available. Dumping unresolved backtrace:\n\t0x524103\n\t0x524144\n\t0x32e56b\n\t0x37176c\n\t0x39c90c\n\t0x36f7c4\n\t0x39cac4\n\t0x3bee17\n\t0x39c706\n\t0x36da30\n\t0x36ed54\n\t0x7957b4\n\t0x79098a\n\t0x54c392\n\t0x53c4c8\n\t0x54324d\n\t0x52c478\n\t0x52c63c\n\t0x5167ca\n\t0x76e55d49\n\t0x772cd6db\n\t0x772cd661\n"
+    ]
+  }
+]

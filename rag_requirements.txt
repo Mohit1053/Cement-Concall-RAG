@@ -1,0 +1,69 @@
+# RAG Pipeline Requirements
+
+# Core Dependencies
+python>=3.9
+
+# PDF Processing
+PyMuPDF==1.23.8
+pdfplumber==0.10.3
+pypdf2==3.0.1
+
+# Text Processing & NLP
+spacy==3.7.2
+nltk==3.8.1
+sentence-transformers==2.2.2
+transformers==4.36.0
+torch>=2.0.0
+
+# Embeddings & Vector Search
+qdrant-client==1.7.0
+chromadb==0.4.22
+faiss-cpu==1.7.4  # or faiss-gpu for GPU support
+
+# LLM Integration
+openai==1.7.0
+anthropic==0.8.0
+langchain==0.1.0
+langchain-community==0.0.13
+langchain-openai==0.0.2
+llama-index==0.9.45
+
+# Data Processing
+pandas==2.1.4
+numpy==1.24.3
+pydantic==2.5.3
+pyyaml==6.0.1
+
+# API & Web Framework
+fastapi==0.108.0
+uvicorn[standard]==0.25.0
+streamlit==1.29.0
+gradio==4.13.0
+
+# Database
+psycopg2-binary==2.9.9  # For PostgreSQL + pgvector
+pgvector==0.2.4
+redis==5.0.1
+
+# Utilities
+python-dotenv==1.0.0
+tqdm==4.66.1
+requests==2.31.0
+httpx==0.26.0
+
+# Monitoring & Logging
+loguru==0.7.2
+prometheus-client==0.19.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Optional: For local LLM
+# ollama==0.1.6
+# vllm==0.2.7
+
+# Optional: For advanced features
+# langfuse==2.0.0
+# arize==7.0.0
+# wandb==0.16.2
