@@ -28,7 +28,7 @@ This project provides an end-to-end solution for:
 
 | Feature | Description |
 |---------|-------------|
-| 📥 **Auto Downloader** | Downloads concall transcripts from MarketsMojo |
+| 📥 **Auto Downloader** | Downloads concall transcripts from Market |
 | 🔍 **Vector Search** | ChromaDB-powered semantic search |
 | 🤖 **RAG Analysis** | LangChain-based intelligent Q&A |
 | 📊 **Business Insights** | Pre-built analysis tasks for growth, costs, market dynamics |
