@@ -48,3 +48,5 @@ rag_pipeline/data/vector_db_all/
 
 # OpenAI
 .openai/
+*.pyc
+.mcp.json
