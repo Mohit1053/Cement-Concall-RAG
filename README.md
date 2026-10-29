@@ -1,222 +1,60 @@
-# 🏭 Cement Industry Concall Analysis with RAG
+# Cement Concall RAG
 
-<div align="center">
+Search and guidance extraction over the earnings-call transcripts of 13 listed Indian cement companies.
 
-![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
-![LangChain](https://img.shields.io/badge/LangChain-RAG-orange.svg)
-![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-green.svg)
-![Streamlit](https://img.shields.io/badge/Streamlit-UI-red.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+## Problem
 
-**Complete RAG-powered system for downloading, indexing, and analyzing cement industry conference call transcripts.**
+Management guidance on volume growth, capacity additions and capex is spread across many quarterly earnings-call transcripts per company, and most of it sits in the analyst Q&A rather than in the prepared remarks. Reading the calls company by company is slow, and plain PDF search loses the question that gives an answer its meaning.
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [RAG Pipeline](#-rag-pipeline) • [Companies](#-companies-covered)
+## What it does
 
-</div>
+1. **Collect.** A Selenium downloader in `concall_downloader/` gathers transcript PDFs for each company from screener.in, filters them to a date window and retries failed downloads. It needs your own login in `concall_downloader/config.py`, which is not committed. The transcripts it collected are already in the repo.
+2. **Index.** `rag_pipeline/build_all_concalls_index.py` extracts text with PyMuPDF, cleans it, splits it into overlapping chunks that keep each analyst question with its management answer, tags every chunk with company, quarter and fiscal year, and builds a TF-IDF index. It runs offline and needs no API key.
+3. **Query.** `rag_pipeline/query_rag.py` detects the companies and topics in a question, ranks chunks with boosts for company match, guidance terms and figures, removes duplicates, and prints a short answer with sources followed by the supporting transcript passages.
+4. **Report.** `generate_q1_report.py` and `generate_q2_report.py` run two fixed questions across every company: revenue-growth guidance and upcoming capex. Saved outputs are in `rag_pipeline/Q1_Revenue_Growth_Guidance_Report_FINAL.txt` and `rag_pipeline/Q2_Capex_Guidance_Report_FINAL.txt`, with a written summary in [rag_pipeline/FINAL_ANALYSIS_SUMMARY.md](rag_pipeline/FINAL_ANALYSIS_SUMMARY.md).
 
----
+Companies covered: ACC, Ambuja Cements, Birla Corporation, Dalmia Bharat, Grasim Industries, India Cements, J K Cement, JK Lakshmi Cement, Nuvoco Vistas, Shree Cement, Star Cement, The Ramco Cements and UltraTech Cement.
 
-## 🎯 Overview
+## Run it
 
-This project provides an end-to-end solution for:
-1. **Downloading** conference call transcripts from multiple sources
-2. **Processing** and indexing transcripts using vector embeddings
-3. **Analyzing** business insights using RAG (Retrieval Augmented Generation)
-4. **Querying** through a user-friendly Streamlit interface
-
-## ✨ Features
-
-| Feature | Description |
-|---------|-------------|
-| 📥 **Auto Downloader** | Downloads concall transcripts from Market |
-| 🔍 **Vector Search** | ChromaDB-powered semantic search |
-| 🤖 **RAG Analysis** | LangChain-based intelligent Q&A |
-| 📊 **Business Insights** | Pre-built analysis tasks for growth, costs, market dynamics |
-| 🖥️ **Streamlit UI** | Interactive web interface for queries |
-| 📑 **Multi-Company** | Covers 13 major cement companies |
-
-## 🏢 Companies Covered
-
-<table>
-<tr>
-<td>
-
-- ACC Limited
-- Ambuja Cements
-- Birla Corporation
-- Dalmia Bharat Ltd
-- Grasim Industries
-
-</td>
-<td>
-
-- India Cements
-- J K Cement
-- JK Lakshmi Cement
-- Nuvoco Vistas
-
-</td>
-<td>
-
-- Shree Cement
-- Star Cement
-- The Ramco Cements
-- UltraTech Cement
-
-</td>
-</tr>
-</table>
-
-## 📦 Installation
-
-### Prerequisites
-- Python 3.9+
-- OpenAI API Key (for embeddings and LLM)
-
-### Setup
+Tested with Python 3.12.
 
 ```bash
-# Clone the repository
 git clone https://github.com/Mohit1053/Cement-Concall-RAG.git
 cd Cement-Concall-RAG
-
-# Create virtual environment
 python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
+pip install pymupdf scikit-learn numpy
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Set OpenAI API Key
-export OPENAI_API_KEY="your-api-key"  # Linux/Mac
-set OPENAI_API_KEY=your-api-key  # Windows
-```
-
-## 📂 Project Structure
-
-```
-Cement_Concall_Project/
-├── 📁 concall_downloader/           # Transcript download scripts
-│   ├── download_concalls_final.py   # Main downloader
-│   ├── extract_concall_urls_2years.py
-│   ├── filter_concalls_2years.py
-│   ├── retry_failed_downloads.py
-│   └── config.py                    # Credentials (gitignored)
-├── 📁 Cement_Concall_Transcripts/   # Downloaded transcripts (56 files)
-│   ├── ACC Limited/
-│   ├── Ambuja Cements/
-│   ├── UltraTech Cement/
-│   └── ... (13 companies)
-├── 📁 rag_pipeline/                 # RAG system
-│   ├── 📁 core/
-│   │   ├── vector_store.py          # ChromaDB operations
-│   │   ├── text_processor.py        # Text chunking
-│   │   └── entity_extraction.py     # Named entity extraction
-│   ├── 📁 tasks/                    # Business analysis tasks
-│   │   ├── growth_analysis.py
-│   │   ├── profitability_analysis.py
-│   │   ├── cost_analysis.py
-│   │   └── market_dynamics.py
-│   ├── 📁 data/vector_db_all/       # Vector database (4,185 chunks)
-│   ├── 📁 scripts/                  # Utility scripts
-│   ├── 📁 ui/                       # Streamlit interface
-│   └── 📁 tests/                    # Test scripts
-├── 📜 rag_structure_setup.py        # RAG setup script
-├── 📜 rag_requirements.txt          # RAG dependencies
-└── 📊 Cement_Companies_Concalls_*.xlsx  # Master data file
-```
-
-## 🚀 Usage
-
-### Step 1: Download Transcripts
-```bash
-cd concall_downloader
-python download_concalls_final.py
-```
-
-### Step 2: Build Vector Index
-```bash
 cd rag_pipeline
-python scripts/build_index.py
+python build_all_concalls_index.py   # about 170 transcripts -> about 12,000 chunks, under a minute
+python query_rag.py "What capex guidance did UltraTech give?"
+python query_rag.py                  # interactive mode
+python generate_q2_report.py         # capex guidance for every company
 ```
 
-### Step 3: Launch Streamlit UI
-```bash
-cd rag_pipeline/ui
-streamlit run app.py
-```
+The steps above need only the three packages shown. `requirements.txt` lists the wider stack tried during development (LangChain, ChromaDB, the OpenAI client, Streamlit). The downloader also needs Selenium and Chrome.
 
-### Step 4: Query via Code
-```python
-from rag_pipeline.core.vector_store import VectorStore
+## Layout
 
-# Initialize
-vs = VectorStore("data/vector_db_all")
+| Path | Contents |
+|---|---|
+| `concall_downloader/` | Downloader scripts, download logs and the collected transcripts |
+| `Cement_Concall_Transcripts/` | A smaller sample set of transcripts |
+| `rag_pipeline/core/` | PDF extraction, cleaning, chunking, metadata, vector-store adapters |
+| `rag_pipeline/build_all_concalls_index.py` | Builds the TF-IDF index from all transcripts |
+| `rag_pipeline/query_rag.py` | Question answering from the command line |
+| `rag_pipeline/generate_q1_report.py`, `generate_q2_report.py` | Cross-company guidance reports |
+| `rag_pipeline/tasks/` | Query templates for further analysis themes (profitability, costs, capacity, ESG) |
 
-# Query
-results = vs.query("What is UltraTech's capacity expansion plan?", k=5)
-for doc in results:
-    print(doc.page_content)
-```
+## Tech
 
-## 🔧 RAG Pipeline
+Python, PyMuPDF, scikit-learn (TF-IDF), NumPy, Selenium. Adapters for ChromaDB, FAISS and Qdrant and an OpenAI client are in `rag_pipeline/core/` but are not used by the scripts above.
 
-### Architecture
+## Note
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   PDF/Docx      │───▶│  Text Chunking   │───▶│   Embeddings    │
-│  Transcripts    │    │  (1000 tokens)   │    │   (OpenAI)      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                       │
-                                                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│    Response     │◀───│   LLM (GPT-4)    │◀───│   ChromaDB      │
-│                 │    │   Generation     │    │   Retrieval     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+The transcripts are public company disclosures and remain the property of the respective companies. This is a research project.
 
-### Pre-built Analysis Tasks
+## License
 
-| Task | Description |
-|------|-------------|
-| 📈 **Growth Analysis** | Revenue growth, volume trends, market share |
-| 💰 **Profitability** | EBITDA margins, cost optimization, pricing power |
-| 🏭 **Cost Analysis** | Fuel costs, logistics, power & fuel mix |
-| 📊 **Market Dynamics** | Demand outlook, competitive landscape |
-
-## 📊 Sample Queries
-
-```
-1. "What is Shree Cement's capacity utilization rate?"
-2. "Compare EBITDA margins across all companies"
-3. "What are the key concerns about fuel costs?"
-4. "Which companies are expanding in South India?"
-5. "What is the demand outlook for FY25?"
-```
-
-## 📈 Data Statistics
-
-| Metric | Value |
-|--------|-------|
-| Companies | 13 |
-| Transcripts | 56 |
-| Vector Chunks | 4,185 |
-| Time Period | 2 Years |
-
-## ⚠️ Disclaimer
-
-This tool is for educational and research purposes only. Concall transcripts are property of respective companies.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-**Built for Cement Industry Research 🏗️**
-
-</div>
+MIT. See [LICENSE](LICENSE).
